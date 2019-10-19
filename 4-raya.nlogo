@@ -1,4 +1,4 @@
-globals [mouse-clicked? psize turn]
+globals [mouse-clicked? psize turn offset]
 
 to setup
   clear-all
@@ -53,9 +53,10 @@ end
 to-report select-patch ;devuelve una lista con las coordenadas x e y de la parcela seleccionada
   let x 0
   let y 0
+  set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))]
   ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
   ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)]
-  [set x pxcor set y pycor]
+  [set x pxcor set y offset]
   let coord []
   set coord lput x coord
   set coord lput y coord
