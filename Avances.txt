@@ -2,3 +2,4 @@
 - El metodo setup crea el tablero
 - Activando el metodo mouse-manager en bucle comienza la detección del mouse sobre el tablero
 - Si se clicka en una casilla se van poniendo las fichas de un color distinto alternativamente dependiendo del turno
+- Agregada función. Cuando se agrega una tortuga tiene que ser siempre en "abajo", es decir, formando una pila de tortugas hacia arriba, no se puede poner en cualquier sitio del tablero.
