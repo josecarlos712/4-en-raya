@@ -1,0 +1,4 @@
+# 4-en-raya
+- El metodo setup crea el tablero
+- Activando el metodo mouse-manager en bucle comienza la detección del mouse sobre el tablero
+- Si se clicka en una casilla se van poniendo las fichas de un color distinto alternativamente dependiendo del turno
