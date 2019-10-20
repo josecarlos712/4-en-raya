@@ -1,4 +1,5 @@
-globals [mouse-clicked? psize turn offset]
+extensions [array matrix]
+globals [mouse-clicked? psize turn offset matrix]
 
 to setup
   clear-all
@@ -11,22 +12,31 @@ to setup
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
   ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
   set turn 0
-
+  set matrix new-matrix 9 9 ;crea la matriz del tablero
 end
 
-to add-piece ;añade una tortuga al tablero en la posicion seleccionada
-  let coord select-patch ;consulta la parcela seleccionada
-  crt 1 [ ;crea una tortuga
+to add-piece [coord] ;añade una tortuga al tablero en la posicion seleccionada
+  crt 1 [ ;crea una tortuga externa
     set xcor (item 0 coord)
     set ycor (item 1 coord)
     set size 0.85
+    ifelse turn = 0 [set color rgb 150 0 0] [set color rgb 0 0 150]
+  ]
+  crt 1 [ ;crea una tortuga interna
+    set xcor (item 0 coord)
+    set ycor (item 1 coord)
+    set size 0.7
     ifelse turn = 0 [set color red] [set color blue]
   ]
+
+  matrix:set matrix item 0 coord item 1 coord (turn + 1)
+  print matrix:pretty-print-text matrix
+
+  show check-board coord
   set turn (turn + 1) mod 2
-  show check-board item 0 coord item 0 coord
 end
 
-to-report check-board [x y]
+to-report check-board [coord]
   let checkcolor 0
   ifelse turn = 0 [set checkcolor red] [set checkcolor blue]
   let points 1
@@ -44,7 +54,7 @@ end
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
   ifelse mouse-down? [
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
-      add-piece
+      add-piece select-patch ;añade una tortuga en la parcela seleccionada
       set mouse-clicked? true
     ]
   ] [set mouse-clicked? false]
@@ -56,11 +66,23 @@ to-report select-patch ;devuelve una lista con las coordenadas x e y de la parce
   set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))]
   ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
   ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)]
-  [set x pxcor set y offset]
+  [set x pxcor set y (offset / 2)] ;el offset es necesario dividirlo entre dos ya que cada ficha son dos tortugas
   let coord []
   set coord lput x coord
   set coord lput y coord
   report coord
+end
+
+to-report new-matrix [width height] ;metodo para crear una matriz
+  let m []
+  repeat height [
+    let c []
+    repeat width [
+      set c lput 0 c
+    ]
+    set m lput c m
+  ]
+  report matrix:from-row-list m ;transforma la lista de listas en una matriz bidimensional
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
