@@ -6,7 +6,7 @@ to setup
   reset-ticks
   ask patches [set pcolor white]
 
-  set psize 70 ;variable del tamaño de las parcelas
+  set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
   resize-world 0 8 0 8 ;redimensiona el mundo al tamaño del tablero
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
@@ -36,6 +36,18 @@ to add-piece [coord] ;añade una tortuga al tablero en la posicion seleccionada
   set turn (turn + 1) mod 2
 end
 
+to add-piece-auto [x] ;metodo para añadir la pieza por comando en vez de hacer click en el tablero
+  let y 0
+  set offset count turtles with [xcor = x]
+  ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
+  let coor []
+  set coor (lput x coor)
+  set coor (lput (offset / 2) coor)
+  print coor
+  add-piece coor
+
+end
+
 to-report check-board [coord]
   let checkcolor 0
   ifelse turn = 0 [set checkcolor red] [set checkcolor blue]
@@ -63,9 +75,9 @@ end
 to-report select-patch ;devuelve una lista con las coordenadas x e y de la parcela seleccionada
   let x 0
   let y 0
-  set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))]
+  set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))] ;calcula el numero de tortugas que hay en una columna
   ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
-  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)]
+  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)] ;obtiene la parcela donde ira la nueva fila
   [set x pxcor set y (offset / 2)] ;el offset es necesario dividirlo entre dos ya que cada ficha son dos tortugas
   let coord []
   set coord lput x coord
@@ -88,11 +100,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-848
-649
+669
+470
 -1
 -1
-70.0
+50.0
 1
 10
 1
@@ -145,6 +157,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+15
+168
+188
+202
+tamanoTablero
+tamanoTablero
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -488,7 +515,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
