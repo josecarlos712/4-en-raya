@@ -4,3 +4,7 @@
 - Si se clicka en una casilla se van poniendo las fichas de un color distinto alternativamente dependiendo del turno
 - Agregada función. Cuando se agrega una tortuga tiene que ser siempre en "abajo", es decir, formando una pila de tortugas hacia arriba, no se puede poner en cualquier sitio del tablero.
 - Se va guardando el estado del tablero en una matriz bidimensional para poder realizar comprobaciones del estado mas facilmente
+- Se puede añadir una ficha haciendo click en el tablero o por comando escongiendo la x (ya que la y es automatica). Servira para cuando la IA tenga que poner una ficha.
+
+//TO-DO
+- Comprobación del tablero cada vez que se pone una ficha en busca de un ganador
