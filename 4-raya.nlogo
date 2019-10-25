@@ -1,5 +1,5 @@
 extensions [array matrix]
-globals [mouse-clicked? psize turn offset matrix]
+globals [mouse-clicked? psize turn offset matrix parar]
 
 to setup
   clear-all
@@ -8,11 +8,12 @@ to setup
 
   set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
-  resize-world 0 8 0 8 ;redimensiona el mundo al tamaño del tablero
+  resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
   ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
   set turn 0
-  set matrix new-matrix 9 9 ;crea la matriz del tablero
+  set matrix new-matrix tamTab tamTab ;crea la matriz del tablero
+  set parar 0
 end
 
 to add-piece [coord] ;añade una tortuga al tablero en la posicion seleccionada
@@ -45,7 +46,6 @@ to add-piece-auto [x] ;metodo para añadir la pieza por comando en vez de hacer 
   set coor (lput (offset / 2) coor)
   print coor
   add-piece coor
-
 end
 
 to-report check-board [coord]
@@ -68,8 +68,11 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
       add-piece select-patch ;añade una tortuga en la parcela seleccionada
       set mouse-clicked? true
+      ganador?
     ]
   ] [set mouse-clicked? false]
+  if parar = 1 [ stop ]
+
 end
 
 to-report select-patch ;devuelve una lista con las coordenadas x e y de la parcela seleccionada
@@ -96,15 +99,44 @@ to-report new-matrix [width height] ;metodo para crear una matriz
   ]
   report matrix:from-row-list m ;transforma la lista de listas en una matriz bidimensional
 end
+
+to ganador?
+  let i 0 let j 0 let cuenta1 0 let cuenta2 0 let ganador 0
+  ;por filas
+  repeat (tamTab) [
+    repeat (tamTab) [
+      let var matrix:get matrix i j
+      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+      if var = 0 [set cuenta1 0 set cuenta2 0]
+      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+      set i i + 1
+    ]
+    set j j + 1 set i 0
+  ]
+  ;por columnas
+  set j 0
+  repeat (tamTab) [
+    repeat (tamTab) [
+      let var matrix:get matrix j i
+      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+      if var = 0 [set cuenta1 0 set cuenta2 0]
+      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+      set i i + 1
+    ]
+    set j j + 1
+    set i 0
+  ]
+  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+203
 10
-669
-470
+836
+644
 -1
 -1
-50.0
+25.0
 1
 10
 1
@@ -115,9 +147,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-8
+24
 0
-8
+24
 0
 0
 1
@@ -125,10 +157,10 @@ ticks
 30.0
 
 BUTTON
-46
-40
-109
-73
+11
+14
+106
+47
 setup
 setup
 NIL
@@ -142,10 +174,10 @@ NIL
 1
 
 BUTTON
-61
+12
+58
 107
-128
-140
+93
 mouse
 mouse-manager
 T
@@ -159,15 +191,30 @@ NIL
 1
 
 SLIDER
-15
-168
-188
-202
+13
+107
+186
+140
 tamanoTablero
 tamanoTablero
 0
 100
-50.0
+25.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+14
+163
+186
+196
+tamTab
+tamTab
+0
+100
+25.0
 1
 1
 NIL
