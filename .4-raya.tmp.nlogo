@@ -170,8 +170,8 @@ to ganador? ;funcion que busca un ganador en cada movimiento
     set i (tamTab)
     set j 0
     set k k + 1
-  ] ;lo mismo que antes pero las "diagonales secundarias"
-  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]; lanzamos aviso del ganador y paramos el juego
+  ]
+  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
