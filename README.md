@@ -16,3 +16,4 @@
 - Arreglado pequeño error con la comprobación del ganador anterior.
 ## TO-DO
 
+- Implementar el algoritmo de Monte Carlo
