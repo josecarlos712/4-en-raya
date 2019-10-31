@@ -101,76 +101,82 @@ to-report new-matrix [width height] ;metodo para crear una matriz
 end
 
 to ganador? ;funcion que busca un ganador en cada movimiento
-  let i 0 let j 0 let cuenta1 0 let cuenta2 0 let ganador 0
-  ;por filas
+  let i 0 let j 0 let cuenta1 0 let cuenta2 0 let ganador 0 let cuenta22 0 let cuenta11 0
+  ;por filas y columnas
   repeat (tamTab) [ ;recorremos todos los elementos de la fila
     repeat (tamTab) [ ;recorremos todas las filas
       let var matrix:get matrix i j
+      let var1 matrix:get matrix j i
       (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] ;si el numero encontrado es un 1 hay una ficha roja, si es 2 una azul
-        var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0]) ;vamos sumando las que nos vayamos encontrando y ponemos a 0 el contador del contrario
+       var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0]) ;vamos sumando las que nos vayamos encontrando y ponemos a 0 el contador del contrario
+      (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
+      if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0] ;si nos encontramos una ficha 0 significa que no hay nada por lo tanto ponemos los 2 contadores a 0
       (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2]) ;si algun contador llega a sumar 4 significa que hay un ganador y lo guardamos en "ganador"
+      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
       set i i + 1
     ]
-    set cuenta1 0
-    set cuenta2 0
-    set j j + 1
-    set i 0
+    set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set j j + 1 set i 0
   ]
   ;por columnas
-  set j 0
-  repeat (tamTab) [ ; *todo igual que antes pero recorremos los elementos de la columna y avanzamos en columnas
-    repeat (tamTab) [
-      let var matrix:get matrix j i
-      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
-      if var = 0 [set cuenta1 0 set cuenta2 0]
-      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-      set i i + 1
-    ]
-    set cuenta1 0
-    set cuenta2 0
-    set j j + 1
-    set i 0
-  ] ; *en realidad nuestra matriz esta volteada y lo anterior es al reves pero lo he puesto asi que se entiende mejor lo que hace
-
+  ;set j 0
+  ;repeat (tamTab) [ ; *todo igual que antes pero recorremos los elementos de la columna y avanzamos en columnas
+  ;  repeat (tamTab) [
+  ;   let var matrix:get matrix j i
+  ;    (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+  ;    if var = 0 [set cuenta1 0 set cuenta2 0]
+  ;    (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+  ;    set i i + 1
+  ;  ]
+  ;  set cuenta1 0
+  ;  set cuenta2 0
+  ;  set j j + 1
+  ;  set i 0
+  ;] ; *en realidad nuestra matriz esta volteada y lo anterior es al reves pero lo he puesto asi que se entiende mejor lo que hace
   ;diagonal1
-  let k 0
-  set i 0
-  set j 0
+  let k 0 set i 0 set j 0 let ii (tamTab - 1)
   repeat (tamTab) [ ;recorremos el numero de elementos existenes tamTab
     repeat (tamTab - k) [ ;necesitamos una variable k para recorrer "todas las diagonales"
      let var matrix:get matrix (i + k) j
+     let var1 matrix:get matrix (ii - k) j
       (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+      (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
+      if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0]
       (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
       set i i + 1
       set j j + 1
+      set ii ii - 1
     ]
+    set cuenta11 0
+    set cuenta22 0
     set cuenta1 0
     set cuenta2 0
+    set ii tamTab
     set i 0
     set j 0
     set k k + 1
   ]
   ;diagonal2
-  set k 0
-  set i (tamTab - 1)
-  set j 0
-  repeat (tamTab) [
-    repeat (tamTab - k) [
-     let var matrix:get matrix (i - k) j
-      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
-      if var = 0 [set cuenta1 0 set cuenta2 0]
-      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-      set i i - 1
-      set j j + 1
-    ]
-    set cuenta1 0
-    set cuenta2 0
-    set i (tamTab)
-    set j 0
-    set k k + 1
-  ] ;lo mismo que antes pero las "diagonales secundarias"
+  ;set k 0
+  ;set i (tamTab - 1)
+  ;set j 0
+  ;repeat (tamTab) [
+  ;  repeat (tamTab - k) [
+  ;   let var matrix:get matrix (i - k) j
+  ;    (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+  ;    if var = 0 [set cuenta1 0 set cuenta2 0]
+  ;    (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+  ;    set i i - 1
+  ;    set j j + 1
+  ;  ]
+  ;  set cuenta1 0
+  ;  set cuenta2 0
+  ;  set i (tamTab)
+  ;  set j 0
+  ;  set k k + 1
+  ;] ;lo mismo que antes pero las "diagonales secundarias"
   if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]; lanzamos aviso del ganador y paramos el juego
 end
 @#$#@#$#@
