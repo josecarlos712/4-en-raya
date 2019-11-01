@@ -5,7 +5,6 @@ to setup
   clear-all
   reset-ticks
   ask patches [set pcolor white]
-
   set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
   resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
@@ -22,18 +21,16 @@ to add-piece [coord] ;añade una tortuga al tablero en la posicion seleccionada
     set ycor (item 1 coord)
     set size 0.85
     ifelse turn = 0 [set color rgb 150 0 0] [set color rgb 0 0 150]
-  ]
+  ];estamos creando 2 tortugas por mera apariencia
   crt 1 [ ;crea una tortuga interna
     set xcor (item 0 coord)
     set ycor (item 1 coord)
     set size 0.7
     ifelse turn = 0 [set color red] [set color blue]
   ]
-
   matrix:set matrix item 0 coord item 1 coord (turn + 1)
   print matrix:pretty-print-text matrix
-
-  show check-board coord
+  ;show check-board coord
   set turn (turn + 1) mod 2
 end
 
@@ -48,20 +45,19 @@ to add-piece-auto [x] ;metodo para añadir la pieza por comando en vez de hacer 
   add-piece coor
 end
 
-to-report check-board [coord]
-  let checkcolor 0
-  ifelse turn = 0 [set checkcolor red] [set checkcolor blue]
-  let points 1
-  let check 1
-  ;revision horizontal
-  let checkturtle 0
-  ;let colorp [[color] of turtles-here] of patch (x + check) y
-  show checkturtle
-  ;type "color: " print colorp
-  ;while [check < 4 and (patch (x + check) y) = checkcolor] []
-
-  report false
-end
+;to-report check-board [coord]
+;  let checkcolor 0
+;  ifelse turn = 0 [set checkcolor red] [set checkcolor blue]
+;  let points 1
+;  let check 1
+;  ;revision horizontal
+;  let checkturtle 0
+;  ;let colorp [[color] of turtles-here] of patch (x + check) y
+;  show checkturtle
+; ;type "color: " print colorp
+;  ;while [check < 4 and (patch (x + check) y) = checkcolor] []
+;  report false
+;end
 
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
   ifelse mouse-down? [
@@ -72,7 +68,6 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
     ]
   ] [set mouse-clicked? false]
   if parar = 1 [ stop ]
-
 end
 
 to-report select-patch ;devuelve una lista con las coordenadas x e y de la parcela seleccionada
@@ -80,7 +75,7 @@ to-report select-patch ;devuelve una lista con las coordenadas x e y de la parce
   let y 0
   set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))] ;calcula el numero de tortugas que hay en una columna
   ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
-  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)] ;obtiene la parcela donde ira la nueva fila
+  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)] ;obtiene la parcela donde irá la nueva fila
   [set x pxcor set y (offset / 2)] ;el offset es necesario dividirlo entre dos ya que cada ficha son dos tortugas
   let coord []
   set coord lput x coord
@@ -93,7 +88,7 @@ to-report new-matrix [width height] ;metodo para crear una matriz
   repeat height [
     let c []
     repeat width [
-      set c lput 0 c
+      set c lput 0 c ;con esto la matriz estará inicializada con 0's
     ]
     set m lput c m
   ]
@@ -105,8 +100,8 @@ to ganador? ;funcion que busca un ganador en cada movimiento
   ;por filas y columnas
   repeat (tamTab) [ ;recorremos todos los elementos de la fila
     repeat (tamTab) [ ;recorremos todas las filas
-      let var matrix:get matrix i j
-      let var1 matrix:get matrix j i
+      let var matrix:get matrix i j ;"var" para trabajar con las filas
+      let var1 matrix:get matrix j i ;"var1" para trabajar con las columnas
       (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] ;si el numero encontrado es un 1 hay una ficha roja, si es 2 una azul
        var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0]) ;vamos sumando las que nos vayamos encontrando y ponemos a 0 el contador del contrario
       (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
@@ -118,6 +113,32 @@ to ganador? ;funcion que busca un ganador en cada movimiento
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set j j + 1 set i 0
   ]
+  ;diagonal1 y diagonal2
+  let k 0 set i 0 set j 0 let ii (tamTab - 1)
+  repeat (tamTab) [ ;recorremos el numero de elementos existenes tamTab
+    repeat (tamTab - k) [ ;necesitamos una variable k para recorrer "todas las diagonales"
+     let var matrix:get matrix (i + k) j ;"var" para trabajar sobre las "diagonales primarias"
+     let var1 matrix:get matrix (ii - k) j ;"var1" para trabajar sobre las "diagonales secundarias"
+      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
+      (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
+      if var1 = 0 [set cuenta11 0 set cuenta22 0]
+      if var = 0 [set cuenta1 0 set cuenta2 0]
+      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
+      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
+      set i i + 1
+      set j j + 1
+      set ii ii - 1 ;no hace falta una variable jj pq j hace lo mismo
+    ]
+    set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set ii tamTab set i 0 set j 0 set k k + 1
+  ]
+  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]; lanzamos aviso del ganador y paramos el juego
+end
+
+
+
+
+
+
   ;por columnas
   ;set j 0
   ;repeat (tamTab) [ ; *todo igual que antes pero recorremos los elementos de la columna y avanzamos en columnas
@@ -133,31 +154,6 @@ to ganador? ;funcion que busca un ganador en cada movimiento
   ;  set j j + 1
   ;  set i 0
   ;] ; *en realidad nuestra matriz esta volteada y lo anterior es al reves pero lo he puesto asi que se entiende mejor lo que hace
-  ;diagonal1
-  let k 0 set i 0 set j 0 let ii (tamTab - 1)
-  repeat (tamTab) [ ;recorremos el numero de elementos existenes tamTab
-    repeat (tamTab - k) [ ;necesitamos una variable k para recorrer "todas las diagonales"
-     let var matrix:get matrix (i + k) j
-     let var1 matrix:get matrix (ii - k) j
-      (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
-      (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
-      if var1 = 0 [set cuenta11 0 set cuenta22 0]
-      if var = 0 [set cuenta1 0 set cuenta2 0]
-      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
-      set i i + 1
-      set j j + 1
-      set ii ii - 1
-    ]
-    set cuenta11 0
-    set cuenta22 0
-    set cuenta1 0
-    set cuenta2 0
-    set ii tamTab
-    set i 0
-    set j 0
-    set k k + 1
-  ]
   ;diagonal2
   ;set k 0
   ;set i (tamTab - 1)
@@ -177,17 +173,15 @@ to ganador? ;funcion que busca un ganador en cada movimiento
   ;  set j 0
   ;  set k k + 1
   ;] ;lo mismo que antes pero las "diagonales secundarias"
-  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]; lanzamos aviso del ganador y paramos el juego
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-229
-27
-877
-676
+271
+30
+685
+445
 -1
 -1
-40.0
+58.0
 1
 10
 1
@@ -198,9 +192,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-15
+6
 0
-15
+6
 0
 0
 1
@@ -250,7 +244,7 @@ tamanoTablero
 tamanoTablero
 0
 100
-40.0
+58.0
 1
 1
 NIL
@@ -265,7 +259,7 @@ tamTab
 tamTab
 0
 100
-16.0
+7.0
 1
 1
 NIL
