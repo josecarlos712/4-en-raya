@@ -14,6 +14,7 @@
   de las reglas que están en la página de Fernando dicen otro).
 - Añadido límite de tortugas para una columna.
 - Arreglado pequeño error con la comprobación del ganador anterior.
+- Comenzando a implementar los metodos de la IA con MTCS
 ## TO-DO
 
 - Implementar el algoritmo de Monte Carlo
