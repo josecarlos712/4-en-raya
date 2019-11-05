@@ -1,7 +1,10 @@
 __includes ["MCTS.nls"]
 
 extensions [array matrix]
-globals [mouse-clicked? psize turn offset matrix parar]
+globals [mouse-clicked? psize estado]
+
+;Hay que mirar en que momento el MCTS devuelve el movimiento final que decide hacer la IA para poder actualizar /estado/
+;Queda probar que todas las funciones hechas funcionen segun lo esperado
 
 to setup
   clear-all
@@ -12,67 +15,70 @@ to setup
   resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
   ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
-  set turn 0
-  set matrix new-matrix tamTab tamTab ;crea la matriz del tablero
-  set parar 0
+  let matrix new-matrix tamTab tamTab ;crea la matriz del tablero
+  set estado (list matrix 0)
 end
 
-to-report add-piece [coord] ;añade una tortuga al tablero en la posicion seleccionada
-  crt 1 [ ;crea una tortuga externa
-    set xcor (item 0 coord)
-    set ycor (item 1 coord)
-    set size 0.85
-    ifelse turn = 0 [set color rgb 150 0 0] [set color rgb 0 0 150]
-  ];estamos creando 2 tortugas por mera apariencia
-  crt 1 [ ;crea una tortuga interna
-    set xcor (item 0 coord)
-    set ycor (item 1 coord)
-    set size 0.7
-    ifelse turn = 0 [set color red] [set color blue]
-  ]
-  matrix:set matrix item 0 coord item 1 coord (turn + 1)
+to refresh ;refresca el tablero basando se en el estado global del tablero
+  (foreach (range 0 tamTab) (range 0 tamTab) ;recorre la x
+    [ [i j] ->
+      if matrix:get MCTS:get-content estado i j > 0 ;filtra las casillas que no tengan fichas
+      [
+        crt 1 [ ;crea una tortuga externa
+        set xcor i
+        set ycor j
+        set size 0.85
+        ifelse MCTS:get-playerJustMoved estado = 0 [set color rgb 150 0 0] [set color rgb 0 0 150]
+        ];estamos creando 2 tortugas por mera apariencia
+
+        crt 1 [ ;crea una tortuga interna
+        set xcor i
+        set ycor j
+        set size 0.7
+        ifelse MCTS:get-playerJustMoved estado = 0 [set color red] [set color blue]
+        ]
+      ]
+    ])
+    let g ganador estado
+    (ifelse g = 1 [write "Ha ganado el jugador 1!" stop]
+            g = 2 [write "Ha ganado el jugador 2!" stop])
+      ; lanzamos aviso del ganador y paramos el juego
+  tick
+end
+
+to-report add-piece [s x] ;modifica el estado s añadiendo una tortuga en la posicion seleccionada
+  let offset ((count turtles with [xcor = x]) / 2) ;el offset es necesario dividirlo entre dos ya que cada ficha son dos tortugas
+  ifelse offset < tamTab [
+  matrix:set first s x offset last s
   ;print matrix:pretty-print-text matrix
   ;show check-board coord
-  set turn (turn + 1) mod 2
+    ;------Hay que añadir la ficha a la matriz con [ matrix:set-and-report matrix row-i col-j new-value ]
+  set s replace-item 1 s ((MCTS:get-playerJustMoved estado + 1) mod 2) ;acutaliza el turno del estado
   ;show MCTS:get-rules (list matrix turn)
-end
-
-to-report add-piece-auto [x] ;metodo para añadir la pieza por comando en vez de hacer click en el tablero
-  let y 0
-  set offset count turtles with [xcor = x]
-  ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
-  let coor []
-  set coor (lput x coor)
-  set coor (lput (offset / 2) coor)
-  print coor
-  report add-piece coor
+  ]
+  [show "Movimiento ilegal"]
 end
 
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
   ifelse mouse-down? [
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
-      if ((item 1 select-patch) != tamTab) [add-piece select-patch ]  ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
+      show add-piece estado select-patch  ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
+      refresh
       set mouse-clicked? true
-      ganador?
     ]
   ] [set mouse-clicked? false]
-  if parar = 1 [ stop ]
 end
 
-to-report select-patch ;devuelve una lista con las coordenadas x e y de la parcela seleccionada
+to-report select-patch ;devuelve la coordenada x de la parcela seleccionada
   let x 0
-  let y 0
-  set offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))] ;calcula el numero de tortugas que hay en una columna
+  ;let offset count turtles with [(pycor >= mouse-ycor or pycor < mouse-ycor) and (mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5))] ;calcula el numero de tortugas que hay en una columna
   ;show "mouse: x:" show mouse-xcor show "y:" show mouse-ycor
-  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5) and mouse-ycor >= (pycor - 0.5) and mouse-ycor < (pycor + 0.5)] ;obtiene la parcela donde irá la nueva fila
-  [set x pxcor set y (offset / 2)] ;el offset es necesario dividirlo entre dos ya que cada ficha son dos tortugas
-  let coord []
-  set coord lput x coord
-  set coord lput y coord
-  report coord
+  ask patches with [mouse-xcor >= (pxcor - 0.5) and mouse-xcor < (pxcor + 0.5)] [set x pxcor] ;obtiene la columna donde irá la nueva ficha
+  report x
 end
 
 to-report new-matrix [width height] ;metodo para crear una matriz
+  ;Se puede crear una matriz con [ matrix:make-identity size ] y hacer la diagonal principal a cero (es mas sencillo)
   let m []
   repeat height [
     let c []
@@ -84,20 +90,20 @@ to-report new-matrix [width height] ;metodo para crear una matriz
   report matrix:from-row-list m ;transforma la lista de listas en una matriz bidimensional
 end
 
-to ganador? ;funcion que busca un ganador en cada movimiento
-  let i 0 let j 0 let cuenta1 0 let cuenta2 0 let ganador 0 let cuenta22 0 let cuenta11 0
+to-report ganador [s] ;funcion que busca un ganador en cada movimiento
+  let i 0 let j 0 let cuenta1 0 let cuenta2 0 let g 0 let cuenta22 0 let cuenta11 0
   ;por filas y columnas
   repeat (tamTab) [ ;recorremos todos los elementos de la fila
     repeat (tamTab) [ ;recorremos todas las filas
-      let var matrix:get matrix i j ;"var" para trabajar con las filas
-      let var1 matrix:get matrix j i ;"var1" para trabajar con las columnas
+      let var matrix:get MCTS:get-content s i j ;"var" para trabajar con las filas
+      let var1 matrix:get MCTS:get-content s j i ;"var1" para trabajar con las columnas
       (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] ;si el numero encontrado es un 1 hay una ficha roja, si es 2 una azul
        var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0]) ;vamos sumando las que nos vayamos encontrando y ponemos a 0 el contador del contrario
       (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
       if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0] ;si nos encontramos una ficha 0 significa que no hay nada por lo tanto ponemos los 2 contadores a 0
-      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2]) ;si algun contador llega a sumar 4 significa que hay un ganador y lo guardamos en "ganador"
-      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
+      (ifelse cuenta1 = 4 [set g 1] cuenta2 = 4 [set g 2]) ;si algun contador llega a sumar 4 significa que hay un ganador y lo guardamos en "ganador"
+      (ifelse cuenta11 = 4 [set g 1] cuenta22 = 4 [set g 2])
       set i i + 1
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set j j + 1 set i 0
@@ -106,21 +112,21 @@ to ganador? ;funcion que busca un ganador en cada movimiento
   let k 0 set i 0 set j 0 let ii (tamTab - 1)
   repeat (tamTab) [ ;recorremos el numero de elementos existenes tamTab
     repeat (tamTab - k) [ ;necesitamos una variable k para recorrer "todas las diagonales"
-     let var matrix:get matrix (i + k) j ;"var" para trabajar sobre las "diagonales primarias"
-     let var1 matrix:get matrix (ii - k) j ;"var1" para trabajar sobre las "diagonales secundarias"
+     let var matrix:get MCTS:get-content s (i + k) j ;"var" para trabajar sobre las "diagonales primarias"
+     let var1 matrix:get MCTS:get-content s (ii - k) j ;"var1" para trabajar sobre las "diagonales secundarias"
       (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
       (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
       if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0]
-      (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-      (ifelse cuenta11 = 4 [set ganador 1] cuenta22 = 4 [set ganador 2])
+      (ifelse cuenta1 = 4 [set g 1] cuenta2 = 4 [set g 2])
+      (ifelse cuenta11 = 4 [set g 1] cuenta22 = 4 [set g 2])
       set i i + 1
       set j j + 1
       set ii ii - 1 ;no hace falta una variable jj pq j hace lo mismo
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set ii tamTab set i 0 set j 0 set k k + 1
   ]
-  if ganador != 0 [(ifelse ganador = 1 [write "Ha ganado el jugador 1!"] ganador = 2 [write "Ha ganado el jugador 2!"]) set parar 1]; lanzamos aviso del ganador y paramos el juego
+  report g
 end
 
 ;------------------------------------------------------------- IA ----------------------------------------------------- (Sin terminar)
@@ -158,44 +164,6 @@ to-report MCTS:get-result [s p]
   let pl MCTS:get-playerJustMoved s
   ifelse pl = p [report 1] [report 0]
 end
-
-
-
-
-  ;por columnas
-  ;set j 0
-  ;repeat (tamTab) [ ; *todo igual que antes pero recorremos los elementos de la columna y avanzamos en columnas
-  ;  repeat (tamTab) [
-  ;   let var matrix:get matrix j i
-  ;    (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
-  ;    if var = 0 [set cuenta1 0 set cuenta2 0]
-  ;    (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-  ;    set i i + 1
-  ;  ]
-  ;  set cuenta1 0
-  ;  set cuenta2 0
-  ;  set j j + 1
-  ;  set i 0
-  ;] ; *en realidad nuestra matriz esta volteada y lo anterior es al reves pero lo he puesto asi que se entiende mejor lo que hace
-  ;diagonal2
-  ;set k 0
-  ;set i (tamTab - 1)
-  ;set j 0
-  ;repeat (tamTab) [
-  ;  repeat (tamTab - k) [
-  ;   let var matrix:get matrix (i - k) j
-  ;    (ifelse var = 1 [set cuenta1 cuenta1 + 1 set cuenta2 0] var = 2 [set cuenta2 cuenta2 + 1 set cuenta1 0])
-  ;    if var = 0 [set cuenta1 0 set cuenta2 0]
-  ;    (ifelse cuenta1 = 4 [set ganador 1] cuenta2 = 4 [set ganador 2])
-  ;    set i i - 1
-  ;    set j j + 1
-  ;  ]
-  ;  set cuenta1 0
-  ;  set cuenta2 0
-  ;  set i (tamTab)
-  ;  set j 0
-  ;  set k k + 1
-  ;] ;lo mismo que antes pero las "diagonales secundarias"
 @#$#@#$#@
 GRAPHICS-WINDOW
 271
@@ -630,7 +598,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
