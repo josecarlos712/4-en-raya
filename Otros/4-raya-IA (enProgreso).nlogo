@@ -22,14 +22,6 @@ to setup
 end
 
 to refresh ;refresca el tablero basando se en el estado global del tablero
-  clear-turtles
-  ask patches [set pcolor white]
-  set psize tamanoTablero ;variable del tamaño de las parcelas
-  set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
-  resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
-  set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
-  ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
-
   (foreach (range 0 tamTab) ;recorre la x y la y
     [i ->
       foreach (range 0 tamTab) [j ->
@@ -51,12 +43,12 @@ to refresh ;refresca el tablero basando se en el estado global del tablero
       ]
       ]
     ])
-    let g ganador estado
-    (ifelse g = 0 [print "Ha ganado el jugador 1!" set parar? true]
+      let g ganador estado
+    (ifelse g = 1 [print "Ha ganado el jugador 1!" set parar? true]
+    g = 2 [print "Ha ganado el jugador 2!" set parar? true]
             g = 0.5 [print "Empate" set parar? true]
-            g = 1 [print "Ha ganado el jugador 2!" set parar? true])
+            )
       ; lanzamos aviso del ganador y paramos el juego
-  tick
 end
 
 to-report add-piece [s x] ;modifica el estado s añadiendo una tortuga en la posicion seleccionada
@@ -77,21 +69,22 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
       set mouse-clicked? true
       set played? true
       print "click"
-    ]
-  ] [set mouse-clicked? false]
-  wait 0.1
+
+  if parar? [stop]
+  ]
   if played? [
+      output-print "MCTS:UCT"
 ;    set estado add-piece estado MCTS:UCT estado max-iterations
  ;   refresh
-    show (word "elijo:" MCTS:UCT estado max-iterations)
-    output-print "aqui empieza"
-    ;let aux MCTS:UCT estado max-iterations
-   ; set estado add-piece estado aux
-    output-print "cuantas veces"
-    set played? false
+    ;show (word "elijo:" MCTS:UCT estado max-iterations)
+    let aux1 first estado
+    let aux MCTS:UCT (list aux1 2) max-iterations
+    set estado add-piece estado aux
     refresh
   ]
-  if parar? [stop]
+    refresh
+  ] [set mouse-clicked? false]
+
 end
 
 to-report select-patch ;devuelve la coordenada x de la parcela seleccionada
@@ -110,8 +103,7 @@ end
 to-report ganador [s] ;funcion que busca un ganador en cada movimiento
   let i 0 let j 0 let cuenta1 0 let cuenta2 0 let g -1 let cuenta22 0 let cuenta11 0
   ;comprueba el empate antes de ponerse a revisar todas las combinaciones
-  let empate? (length MCTS:get-rules s) = 0
-  if empate? [report 0.5] ;si hay un empate devuelve 0
+  ;if empate? [report 0.5] ;si hay un empate devuelve 0
   ;por filas y columnas
   repeat (tamTab) [ ;recorremos todos los elementos de la fila
     repeat (tamTab) [ ;recorremos todas las filas
@@ -122,8 +114,8 @@ to-report ganador [s] ;funcion que busca un ganador en cada movimiento
       (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
       if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0] ;si nos encontramos una ficha 0 significa que no hay nada por lo tanto ponemos los 2 contadores a 0
-      (ifelse cuenta1 = 4 [set g 0] cuenta2 = 4 [set g 1]) ;si algun contador llega a sumar 4 significa que hay un ganador y lo guardamos en "ganador"
-      (ifelse cuenta11 = 4 [set g 0] cuenta22 = 4 [set g 1])
+      (ifelse cuenta1 = 4 [set g 1] cuenta2 = 4 [set g 2]) ;si algun contador llega a sumar 4 significa que hay un ganador y lo guardamos en "ganador"
+      (ifelse cuenta11 = 4 [set g 1] cuenta22 = 4 [set g 2])
       set i i + 1
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set j j + 1 set i 0
@@ -138,14 +130,16 @@ to-report ganador [s] ;funcion que busca un ganador en cada movimiento
       (ifelse var1 = 1 [set cuenta11 cuenta11 + 1 set cuenta22 0] var1 = 2 [set cuenta22 cuenta22 + 1 set cuenta11 0])
       if var1 = 0 [set cuenta11 0 set cuenta22 0]
       if var = 0 [set cuenta1 0 set cuenta2 0]
-      (ifelse cuenta1 = 4 [set g 0] cuenta2 = 4 [set g 1])
-      (ifelse cuenta11 = 4 [set g 0] cuenta22 = 4 [set g 1])
+      (ifelse cuenta1 = 4 [set g 1] cuenta2 = 4 [set g 2])
+      (ifelse cuenta11 = 4 [set g 1] cuenta22 = 4 [set g 2])
       set i i + 1
       set j j + 1
       set ii ii - 1 ;no hace falta una variable jj pq j hace lo mismo
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set ii tamTab set i 0 set j 0 set k k + 1
   ]
+  if g = 1 or g = 2 [report g]
+  if empty? MCTS:get-rules s [report 0.5]
   report g
 end
 
@@ -167,6 +161,7 @@ end
 ; Obtener posibles movimientos (todos menos en las columnas a las
 ;que se haya llegado al maximo de fichas)
 to-report MCTS:get-rules [s]
+  output-print "get-rules"
   let m map [c -> remove 0 c] matrix:to-row-list (MCTS:get-content s) ;pasa la matriz a una lista de columnas y elimina los ceros para saber
                                                                       ;cuales son los movimientos posibles en cada columna
   report filter [c -> (length item c m) < tamTab] (range 0 tamTab) ;devuelve una lista con el numero de cada columna en la que es posible hacer un moviento
@@ -174,26 +169,34 @@ end
 ; Apply the rule r to the state s
 ; Crear un nuevo estado a partir de aplicar uno de los movimientos (r)
 ;provenientes de la lista de movimientos de get-rules
+
+
+
 to-report MCTS:apply [r s]
-  let std add-piece s r
-  report MCTS:create-state MCTS:get-content std (3 - MCTS:get-playerJustMoved std)
+  output-print "apply"
+  let offset-list map [c -> length (filter [it -> it > 0] c)] matrix:to-row-list MCTS:get-content s ;guarda una lista con el offset de cada columna
+  let m MCTS:get-content s
+  if (item r offset-list) < tamTab [matrix:set m r (item r offset-list) (last s mod 3)]
+  ;let std add-piece s r
+  report MCTS:create-state m (3 - MCTS:get-playerJustMoved s)
 end
+
+
+
 ; Move the result from the last state to the current one
 to-report MCTS:get-result [s p]
+  output-print "get-result"
   let pl MCTS:get-playerJustMoved s
   let g ganador s
-  (ifelse
-    g = 0.5 [report 0.5]
-    g = p [report 1]
-    g = pl[report 0])
-  report false
+  if g != -1 [report g]
+  report [false]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-271
-30
-507
-267
+272
+31
+508
+268
 -1
 -1
 57.0
@@ -289,7 +292,7 @@ max-iterations
 max-iterations
 0
 100
-100.0
+1.0
 1
 1
 NIL
