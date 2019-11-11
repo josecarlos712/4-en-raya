@@ -20,24 +20,27 @@ to setup
   set parar? false
 end
 
+
+
+
 to refresh ;refresca el tablero basando se en el estado global del tablero
   (foreach (range 0 tamTab) ;recorre la x y la y
     [i ->
       foreach (range 0 tamTab) [j ->
-      if (matrix:get (MCTS:get-content estado) i j) > 0 ;filtra las casillas que no tengan fichas
+      if (matrix:get (first estado) i j) > 0
       [
         crt 1 [ ;crea una tortuga externa
         set xcor i
         set ycor j
         set size 0.85
-        ifelse matrix:get (MCTS:get-content estado) i j = 1 [set color rgb 150 0 0] [set color rgb 0 0 150]
+        ifelse matrix:get (first estado) i j = 1 [set color rgb 150 0 0] [set color rgb 0 0 150]
         ];estamos creando 2 tortugas por mera apariencia
 
         crt 1 [ ;crea una tortuga interna
         set xcor i
         set ycor j
         set size 0.7
-        ifelse matrix:get (MCTS:get-content estado) i j = 1 [set color red] [set color blue]
+        ifelse matrix:get (first estado) i j = 1 [set color red] [set color blue]
         ]
       ]
       ]
@@ -48,7 +51,6 @@ to refresh ;refresca el tablero basando se en el estado global del tablero
             g = 0.5 [print "Empate" set parar? true]
             )
       ; lanzamos aviso del ganador y paramos el juego
-  tick
 end
 
 
@@ -59,18 +61,12 @@ to-report add-piece [s x] ;modifica el estado s añadiendo una tortuga en la pos
   let m MCTS:get-content s
   if (item x offset-list) < tamTab [matrix:set m x (item x offset-list) (last s)]
   report MCTS:create-state m MCTS:get-playerJustMoved s
-
 end
-
-
-
 
 
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
   let played? false
-
   ifelse mouse-down? [
-
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
       set estado add-piece estado select-patch  ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
       set mouse-clicked? true
@@ -79,17 +75,14 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
       print "click"
     ]
   ] [set mouse-clicked? false]
+  let aux estado
   if played? [
- ;   set estado add-piece estado MCTS:UCT estado max-iterations
- ;   refresh
-    show (word "elijo:" MCTS:UCT estado max-iterations)
+    show (word "elijo:" MCTS:UCT aux max-iterations)
     set played? false
     refresh
   ]
   if parar? [stop]
 end
-
-
 
 
 
@@ -203,7 +196,6 @@ end
 ; Crear un nuevo estado a partir de aplicar uno de los movimientos (r)
 ;provenientes de la lista de movimientos de get-rules
 to-report MCTS:apply [r s]
-    output-print matrix:pretty-print-text first estado
   let std add-piece s r
   report MCTS:create-state (MCTS:get-content std) (3 - MCTS:get-playerJustMoved s)
 end
@@ -216,9 +208,10 @@ to-report MCTS:get-result [s p]
   let pl MCTS:get-playerJustMoved s
   let g ganador s
   (ifelse
-    g = 0.5 [report 0.5]
     g - 1 = p [report 1]
-    g - 1 = pl[report 0])
+    g - 1 = pl[report 0]
+    g = 0.5 [report 0.5]
+    )
   report false
 end
 @#$#@#$#@
@@ -320,10 +313,10 @@ SLIDER
 256
 max-iterations
 max-iterations
-0
-100
-50.0
-1
+50
+1000
+570.0
+10
 1
 NIL
 HORIZONTAL
