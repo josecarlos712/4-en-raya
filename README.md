@@ -14,7 +14,6 @@
   de las reglas que están en la página de Fernando dicen otro).
 - Añadido límite de tortugas para una columna.
 - Arreglado pequeño error con la comprobación del ganador anterior.
-- Metodos de la IA con MCTS casi funcionales
+- Rama IA de JC termnida
 ## TO-DO
-
-- Queda ver de donde vienen los errores que surgen al meter a la IA
+- Pulir detalles de interfaz
