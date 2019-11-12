@@ -10,12 +10,12 @@ globals [mouse-clicked? psize estado parar? max-iterations]
 to setup
   clear-all
   reset-ticks
-  ask patches [set pcolor white]
   set max-iterations 1
   set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
   resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
+  ask patches [set pcolor white]
   ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
   set estado (list new-matrix tamTab 0) ;crea el estado inicial del tablero
   set parar? false
@@ -68,22 +68,32 @@ end
 
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
   let played? false
+  if parar? [stop]
   ifelse mouse-down? [
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
-      set estado add-piece estado select-patch  ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
-      refresh
-      set mouse-clicked? true
-      set played? true
-      print "click"
+      if not played? [
+        ;show estado
+        set estado MCTS:apply select-patch estado ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
+        refresh
+        set mouse-clicked? true
+        set played? true
+        ;print "click"
+      ]
     ]
   ] [set mouse-clicked? false]
   if played? [
-;    set estado add-piece estado MCTS:UCT estado max-iterations
- ;   refresh
-    show (word "elijo:" MCTS:UCT estado max-iterations)
+    let s estado
+    let eleccion MCTS:UCT estado max-iterations
+    ;show (word "eleccion " eleccion)
+    set s MCTS:apply eleccion s
+    ;show (word "s " s)
+    set estado s ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
+    ;show (word "estado" estado)
+    refresh
+    ;print "click"
+    show (word "Elijo la columna " eleccion)
     set played? false
   ]
-  if parar? [stop]
 end
 
 to-report select-patch ;devuelve la coordenada x de la parcela seleccionada
@@ -167,8 +177,11 @@ end
 ; Crear un nuevo estado a partir de aplicar uno de los movimientos (r)
 ;provenientes de la lista de movimientos de get-rules
 to-report MCTS:apply [r s]
-  let std add-piece s r
-  report MCTS:create-state MCTS:get-content std ((MCTS:get-playerJustMoved std + 1) mod 2)
+  let offset-list map [c -> length (filter [it -> it > 0] c)] matrix:to-row-list MCTS:get-content s ;guarda una lista con el offset de cada columna
+  let m matrix:copy MCTS:get-content s
+  ;show m
+  matrix:set m r (item r offset-list) (last s + 1)
+  report MCTS:create-state m ((last s + 1) mod 2)
 end
 ; Move the result from the last state to the current one
 to-report MCTS:get-result [s p]
@@ -184,8 +197,8 @@ end
 GRAPHICS-WINDOW
 271
 30
-511
-271
+627
+387
 -1
 -1
 58.0
@@ -199,9 +212,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-3
+5
 0
-3
+5
 0
 0
 1
@@ -209,10 +222,10 @@ ticks
 30.0
 
 BUTTON
-11
 14
-106
-47
+11
+109
+44
 setup
 setup
 NIL
@@ -265,8 +278,8 @@ SLIDER
 tamTab
 tamTab
 0
-100
-4.0
+10
+6.0
 1
 1
 NIL
@@ -614,7 +627,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
