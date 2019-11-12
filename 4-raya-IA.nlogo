@@ -10,7 +10,7 @@ globals [mouse-clicked? psize estado parar? max-iterations]
 to setup
   clear-all
   reset-ticks
-  set max-iterations 1
+  set max-iterations 5
   set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
   resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
@@ -81,7 +81,7 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
       ]
     ]
   ] [set mouse-clicked? false]
-  if played? [
+  if played? and not parar? [
     let s estado
     let eleccion MCTS:UCT estado max-iterations
     ;show (word "eleccion " eleccion)
