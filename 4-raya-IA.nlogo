@@ -113,7 +113,7 @@ to-report ganador [s] ;funcion que busca un ganador en cada movimiento
   let i 0 let j 0 let cuenta1 0 let cuenta2 0 let g -1 let cuenta22 0 let cuenta11 0
   ;comprueba el empate antes de ponerse a revisar todas las combinaciones
   let empate? (length MCTS:get-rules s) = 0
-  if empate? [report 0.5] ;si hay un empate devuelve 0
+   ;si hay un empate devuelve 0
   ;por filas y columnas
   repeat (tamTab) [ ;recorremos todos los elementos de la fila
     repeat (tamTab) [ ;recorremos todas las filas
@@ -147,6 +147,9 @@ to-report ganador [s] ;funcion que busca un ganador en cada movimiento
       set ii ii - 1 ;no hace falta una variable jj pq j hace lo mismo
     ]
     set cuenta11 0 set cuenta22 0 set cuenta1 0 set cuenta2 0 set ii tamTab set i 0 set j 0 set k k + 1
+  ]
+  if empate? [
+    if g < 1 [report 0.5]
   ]
   report g
 end
@@ -197,8 +200,8 @@ end
 GRAPHICS-WINDOW
 271
 30
-627
-387
+511
+271
 -1
 -1
 58.0
@@ -212,9 +215,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-5
+3
 0
-5
+3
 0
 0
 1
@@ -279,7 +282,7 @@ tamTab
 tamTab
 0
 10
-6.0
+4.0
 1
 1
 NIL
@@ -627,7 +630,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
