@@ -73,10 +73,14 @@ to mouse-manager ;hay que activar el boton mouse-manager para que detecte los cl
     if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
       if not played? [
         ;show estado
+        let offset-list map [c -> length (filter [it -> it > 0] c)] matrix:to-row-list MCTS:get-content estado ;guarda una lista con el offset de cada columna
+        if item select-patch offset-list != tamTab [
         set estado MCTS:apply select-patch estado ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
         refresh
         set mouse-clicked? true
         set played? true
+        ]
+
         ;print "click"
       ]
     ]
