@@ -3,21 +3,15 @@ __includes ["MCTS.nls"]
 extensions [array matrix]
 globals [mouse-clicked? psize estado parar?]
 
-;Hay que mirar en que momento el MCTS devuelve el movimiento final que decide hacer la IA para poder actualizar /estado/
-;Queda probar que todas las funciones hechas funcionen segun lo esperado
-;Comprobando metodo /apply/
-
-
-
 to setup
-  clear-all
-  reset-ticks
+  clear-all ;ejecuta clear-globals, clear-ticks, clear-turtles, clear-patches, clear-drawing, clear-all-plots, and clear-output
+  reset-ticks ;pone los ticks a 0
   set psize tamanoTablero ;variable del tamaño de las parcelas
   set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
   resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
   set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
-  ask patches [set pcolor white]
-  ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
+  ask patches [set pcolor white] ;coloreamos los patches de color blanco
+  ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black] ;vamos poniendo los patches de color negro dejando uno blanco en medio
   set estado (list new-matrix tamTab 0) ;crea el estado inicial del tablero
   set parar? false
 end
@@ -27,14 +21,6 @@ end
 
 
 to refresh ;refresca el tablero basando se en el estado global del tablero
-  clear-turtles
-  ask patches [set pcolor white]
-  set psize tamanoTablero ;variable del tamaño de las parcelas
-  set-default-shape turtles "circle" ;establece la forma de la tortuga a circular
-  resize-world 0 tamTab - 1 0 tamTab - 1 ;redimensiona el mundo al tamaño del tablero
-  set-patch-size psize ;aumenta el tamaño de las parccelas para ver el tablero mas grande
-  ask patches with [((pxcor + pycor) mod 2) = 1] [set pcolor black]
-
   (foreach (range 0 tamTab) ;recorre la x y la y
     [i ->
       foreach (range 0 tamTab) [j ->
@@ -71,7 +57,7 @@ end
 to-report add-piece [s x] ;modifica el estado s añadiendo una tortuga en la posicion seleccionada
   let offset-list map [c -> length (filter [it -> it > 0] c)] matrix:to-row-list MCTS:get-content s ;guarda una lista con el offset de cada columna
   let m MCTS:get-content s
-  ifelse (item x offset-list) < tamTab [matrix:set m x (item x offset-list) (last s + 1)] [print "Movimiento ilegal" report (list m (last s - 1))]
+  ifelse (item x offset-list) < tamTab [matrix:set m x (item x offset-list) (last s + 1)] [print "Movimiento ilegal" report (list m (last s - 1))] ;al añadir una pieza vemos si no se ha llegado al limite de columna si es asi devolvemos un aviso
   report MCTS:create-state m MCTS:get-playerJustMoved s
 end
 
@@ -79,31 +65,26 @@ end
 
 
 to mouse-manager ;hay que activar el boton mouse-manager para que detecte los clicks
-  let played? false
-  if parar? [stop]
+  let played? false ;nos va a indicar cuando es nuestro turno
+  if parar? [stop] ;si parar?=true significa que hay ganador y el juego se tiene que parar
   ifelse mouse-down? [
-    if not mouse-clicked? [ ;meter aqui dentro las instrucciones que se ejecutan al hacer click en el tablero
-      if not played? [
-        ;show estado
+    if not mouse-clicked? [ ;evitar poner fichas a lo loco si se mantiene el click apretado
+      if not played? [ ;si es nuestro turno y hacemos click
         let offset-list map [c -> length (filter [it -> it > 0] c)] matrix:to-row-list MCTS:get-content estado ;guarda una lista con el offset de cada columna
-        (ifelse item select-patch offset-list != tamTab [
-        set estado MCTS:apply select-patch estado ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
+        (ifelse item select-patch offset-list != tamTab [ ;cambiamos al nuevo estado solo si no hemos pulsado en una columna que esté llena
+        set estado MCTS:apply select-patch estado
         refresh
         set played? true
-        ] [set mouse-clicked? true print "Movimiento ilegal" ])
+        ] [set mouse-clicked? true print "Movimiento ilegal" ]) ;si la columna esta llena avisamos y avisamos de que se ha hecho click para evitar varios prints de lo mismo
       ]
     ]
-  ] [set mouse-clicked? false]
+  ] [set mouse-clicked? false] ;guardamos que el click no se esta apretando
   if played? and not parar? [
     let s estado
-    let eleccion MCTS:UCT estado max-iterations
-    ;show (word "eleccion " eleccion)
+    let eleccion MCTS:UCT estado max-iterations ;invocamos al metodo principal de MCTS
     set s MCTS:apply eleccion s
-    ;show (word "s " s)
-    set estado s ;añade una tortuga en la parcela seleccionada *si no es el fin de la columna
-    ;show (word "estado" estado)
+    set estado s ;guardamos la eleccion de MCTS en el tablero
     refresh
-    ;print "click"
     if ganador estado != -1 [stop]
     show (word "Elijo la columna " eleccion)
     set played? false
@@ -253,8 +234,8 @@ end
 GRAPHICS-WINDOW
 384
 25
-992
-634
+792
+434
 -1
 -1
 100.0
@@ -268,9 +249,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-5
+3
 0
-5
+3
 0
 0
 1
@@ -335,7 +316,7 @@ tamTab
 tamTab
 4
 10
-6.0
+4.0
 2
 1
 NIL
@@ -350,7 +331,7 @@ max-iterations
 max-iterations
 10000
 30000
-20000.0
+10000.0
 10000
 1
 Dificultad
@@ -378,38 +359,51 @@ NIL
 
 Se trata de el clasico juego del 4 en raya, el cual podemos jugar tanto 2 jugadores como un jugador contra la IA(a la que se le puede ajustar la dificultad analizando más casos posibles)
 
-## ¿Cómo se crea el tablero?
-El tablero se crea usando los parametros de entrada TamanoTablero (que nos indica el tamaño de cada parcela) y el parámetro tamTab(que se usa para indicar cuantas parcelas hay en cada fila).
-Después, se llama a la función setup que se encarga de limpiar el tablero y resetear los ticks, para luego redimensionar el mundo al tamaño del tablero y ajusta el tamaño de las parcelas. Además, crea las fichas, y colorea cada parcela de blanco o negro de forma que se puedan ver mejor las posiciones.Por último, esta función crea el estado inicial que es una matriz cuadrada vacia con todas las filas y las columnas, y pone a false la variable parar? que indica cuando termina el juego.   
+## ¿Cómo funciona?
+El juego tiene una serie de procedimientos que podemos dividir en partes, en primer lugar
+tenemos la parte de inicialización en la cual creamos el tablero e inicializamos ciertas
+variables. El tablero se crea usando los parametros de entrada TamanoTablero (que nos indica el tamaño de cada parcela) y el parámetro tamTab(que se usa para indicar cuantas parcelas hay en cada fila).
+Después, se llama a la función setup que se encarga de limpiar el tablero y resetear los ticks, para luego redimensionar el mundo al tamaño del tablero y ajusta el tamaño de las parcelas. Además, crea las fichas, y colorea cada parcela de blanco o negro de forma que se puedan ver mejor las posiciones.Por último, esta función crea el estado inicial que es una matriz cuadrada vacia con todas las filas y las columnas, y pone a false la variable parar? que indica cuando termina el juego. Para acabar esta fase de inicialización, el jugador debe decidir el modo de juego (IA u otro jugador).
+
+Una vez terminada la fase de inicialización, dependiendo del modo de juego elegido, entraremos en la siguiente parte que se va a encargar practicamente de todas las funciones del juego. En el caso de jugar contra IA tenemos una funcion "destacada" que se va a encargar de los turnos, llamar a otras funciones necesarias para calcular donde iría la siguiente ficha y agregarla al tablero, y en el momento adecuado llamar a la función mediante la cual el algoritmo de Monte Carlo nos da una respuesta, siendo necesario este ultimo solo en el caso de jugar contra IA (mouse-manager->vs IA, mouse-player->vs jugador).
+
+Despues de cada movimiento llamaremos a un método "refresh" que se encargará de actualizar las fichas del tablero a los valores de la matriz que estamos rellenando dentro del código, y también iremos viendo dentro de este metodo si hay algún ganador mediante la función "ganador" que lo hará mediante la comprobación de la disposición de las fichas en el tablero.
+
+(Se han omitido algunas funciones auxiliares sin mucha importancia)
 
 
-## Jugador Contra IA
+## ¿Cómo usar? (Jugar vs IA / otro jugador)
 
-Para poder jugar contra la IA eljugador ha de pulsar el boton de "jugador vs IA" e introducir la cantidad de iteraciones que esta realizará con el deslizador "Max_iterations" lo que dictará cuantas iteraciones calculará por el algoritmo de  Monte Carlo 
+Para poder jugar contra la IA el jugador ha de pulsar el boton de "player vs IA" e introducir la cantidad de iteraciones que esta realizará con el deslizador "Max_iterations" lo que dictará cuantas iteraciones calculará por el algoritmo de Monte Carlo. Si se desea jugar contra otro jugador simplemente hay que pulsar "player vs player" y elegir las opciones anteriormente descritas.
 
-## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+## Cosas a considerar (IA)
 
-## THINGS TO TRY
+Como se verá en la ejecución cuanto mas alto sea el valor de max-iterations mas va a tardar el algoritmo de MCTS en dar una respuesta, esto se debe principlmente al estado actual del código ya que este no se hizo pensando lo necesario en la optimización.
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+En cuanto al tamaño del tablero, cuanto mayor sea este se tendrán que considerar muchas mas posibilidades en el tablero de forma que aumentará considerablemente la respuesta.
 
-## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+## Extendiendo el modelo
 
-## NETLOGO FEATURES
+Hay una serie de cosas que pueden modificarse para mejorar el código y por lo tanto la experiencia para el usuario. En primer lugar vamos a considerar la optimización ya que ésta afecta de lleno la experiencia del juego. Se pueden mejorar ciertas funciones, como por ejemplo la del ganador de forma que sea mas eficiente a la hora de recorrer la matriz y buscar si hay ganador. 
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+Como siguiente mejora podemos implementar la poda para el algoritmo de MCTS, de esta forma evitaremos visitar zonas del juego innecesarias lo que provocará mejores tiempos de respuesta.
 
-## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+## Modelos relacionados
 
-## CREDITS AND REFERENCES
+Para construir este modelo (sobre todo la parte que no implementa IA), nos hemos basado en la parte de Busquedas con Adversario del repositorio de fsancho
+ 
+(https://github.com/fsancho/IA/tree/master/05.%20Adversarial%20Search)
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+
+## Modelo en github
+
+Link: https://github.com/josecarlos712/4-en-raya
+ 
+ 
+ 
 @#$#@#$#@
 default
 true
