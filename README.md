@@ -14,6 +14,8 @@
   de las reglas que están en la página de Fernando dicen otro).
 - Añadido límite de tortugas para una columna.
 - Arreglado pequeño error con la comprobación del ganador anterior.
-- Rama IA de JC termnida
+- Rama IA de JC termnida.
+- Unificada la parte de jugador vs jugador y la de jugador vs IA.
+
 ## TO-DO
 - Pulir detalles de interfaz
