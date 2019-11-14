@@ -253,11 +253,11 @@ end
 GRAPHICS-WINDOW
 384
 25
-1142
-784
+992
+634
 -1
 -1
-150.0
+100.0
 1
 10
 1
@@ -268,9 +268,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-4
+5
 0
-4
+5
 0
 0
 1
@@ -320,7 +320,7 @@ tamanoTablero
 tamanoTablero
 100
 200
-150.0
+100.0
 50
 1
 NIL
@@ -333,10 +333,10 @@ SLIDER
 233
 tamTab
 tamTab
-0
+4
 10
-5.0
-1
+6.0
+2
 1
 NIL
 HORIZONTAL
@@ -350,7 +350,7 @@ max-iterations
 max-iterations
 10000
 30000
-10000.0
+20000.0
 10000
 1
 Dificultad
@@ -374,17 +374,18 @@ NIL
 1
 
 @#$#@#$#@
-## WHAT IS IT?
+## ¿Qué es?
 
-(a general understanding of what the model is trying to show or explain)
+Se trata de el clasico juego del 4 en raya, el cual podemos jugar tanto 2 jugadores como un jugador contra la IA(a la que se le puede ajustar la dificultad analizando más casos posibles)
 
-## HOW IT WORKS
+## ¿Cómo se crea el tablero?
+El tablero se crea usando los parametros de entrada TamanoTablero (que nos indica el tamaño de cada parcela) y el parámetro tamTab(que se usa para indicar cuantas parcelas hay en cada fila).
+Después, se llama a la función setup que se encarga de limpiar el tablero y resetear los ticks, para luego redimensionar el mundo al tamaño del tablero y ajusta el tamaño de las parcelas. Además, crea las fichas, y colorea cada parcela de blanco o negro de forma que se puedan ver mejor las posiciones.Por último, esta función crea el estado inicial que es una matriz cuadrada vacia con todas las filas y las columnas, y pone a false la variable parar? que indica cuando termina el juego.   
 
-(what rules the agents use to create the overall behavior of the model)
 
-## HOW TO USE IT
+## Jugador Contra IA
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Para poder jugar contra la IA eljugador ha de pulsar el boton de "jugador vs IA" e introducir la cantidad de iteraciones que esta realizará con el deslizador "Max_iterations" lo que dictará cuantas iteraciones calculará por el algoritmo de  Monte Carlo 
 
 ## THINGS TO NOTICE
 
