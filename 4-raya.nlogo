@@ -376,40 +376,61 @@ NIL
 @#$#@#$#@
 ## ¿Qué es?
 
-Se trata de el clasico juego del 4 en raya, el cual podemos jugar tanto 2 jugadores como un jugador contra la IA(a la que se le puede ajustar la dificultad analizando más casos posibles)
+Se trata de el clasico juego del 4 en raya, el cual podemos jugar tanto 2 jugadores como un jugador contra la IA(a la que se le puede ajustar la dificultad analizando más casos posibles)(Usa como variables globales "mouse-cliked?" ,"psize","estado" y "parar").
 
 ## ¿Cómo se crea el tablero?
+
 El tablero se crea usando los parametros de entrada TamanoTablero (que nos indica el tamaño de cada parcela) y el parámetro tamTab(que se usa para indicar cuantas parcelas hay en cada fila).
+
 Después, se llama a la función setup que se encarga de limpiar el tablero y resetear los ticks, para luego redimensionar el mundo al tamaño del tablero y ajusta el tamaño de las parcelas. Además, crea las fichas, y colorea cada parcela de blanco o negro de forma que se puedan ver mejor las posiciones.Por último, esta función crea el estado inicial que es una matriz cuadrada vacia con todas las filas y las columnas, y pone a false la variable parar? que indica cuando termina el juego.   
 
 
 ## Jugador Contra IA
 
-Para poder jugar contra la IA eljugador ha de pulsar el boton de "jugador vs IA" e introducir la cantidad de iteraciones que esta realizará con el deslizador "Max_iterations" lo que dictará cuantas iteraciones calculará por el algoritmo de  Monte Carlo 
+Para poder jugar contra la IA eljugador ha de pulsar el boton de "jugador vs IA" e introducir la cantidad de iteraciones que esta realizará con el deslizador "Max_iterations" lo que dictará cuantas iteraciones calculará por el algoritmo de  Monte Carlo. El boton de "jugador vs IA" llama a la función mouse-manager. 
 
-## THINGS TO NOTICE
+## Función mouse-manager
 
-(suggested things for the user to notice while running the model)
+Esta función realiza los siguientes pasos continuamente:
 
-## THINGS TO TRY
+1º Pone played? a false
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+2º Pregunta si hay que parar la ejecución, y en caso de que haya que detenerla, la detiene
 
-## EXTENDING THE MODEL
+3º Pregunta a la función mouse-down si se está usando el cursor. Si no, se pone mouse-clicked a falso.
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+-Si se está usando el cursor se pregunta por si no se ha hecho un click. Si esto es cierto, se pregunta por si no se ha jugado, si esto ocurre, el codigo guarda un offset de cada columna y pregunta por si se puede poner una ficha en la columna seleccionada, en caso de que no, se mostrará un mensaje diciendo que está prohibido. Si por el contrario, se puede colocar la ficha, coloca la ficha en la parcela, llama a la función refresh e indica que se ha jugado.
 
-## NETLOGO FEATURES
+4º Pregunta por si se ha jugado y si no se debe parar.Si esto ocurre se crea "s" con el 	estado del tablero y se crea la variable "elección" (que es la elección de la IA entre todas sus posibilidades) con el estado del tablero y el numero máximo de iteraciones( indicadas por max-iterations).
+Después, aplica la elección a "s" y lo guarda en el estado(para añadir la ficha a la parcela).
+Luego hace un refresh y pregunta si el estado es un estado ganador.En caso de que lo sea se para la ejecución.
+Por último muestra su movimiento con un mensaje que dice"Elijo la columna" e indica cual es y vuelve a poner jugado a falso.
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+## La función new-matrix
 
-## RELATED MODELS
+Esta función se utiliza para crear la matriz vacia del tablero, para ello primero crea una matriz identidad, y luego mediante un bucle, pone todos los elementos de la diagonal a cero y devuelve la matriz resultado.
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+## La función select-patch
 
-## CREDITS AND REFERENCES
+Esta función se utiliza para obtener la columna que ha sido seleccionada, para ello pregunta a las casillas que tienen el cursor en su posición que devuelvan su coordenada x para así seleccionar la columna.
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+## La función refresh
+
+Esta función se utiliza para actualizar el tablero con la variable global estado y funciona de la siguiente forma:
+
+Primero Borra todo el tablero con las piezas incluidas.
+Luego vuelve a crear el tablero vacío y con un bucle al que se le filtran las posiciones vacias segun el estado y en las casillas restantes se le pregunta al estado por la ficha correspondiente que debe ir. (Las fichas están formadas por dos tortugas, una exterior de color más oscuro y otra interior de color más claro).
+
+Por último, la función llama a ganador (al que le envia el estado) y dependiendo del resultado imprimirá quien es el ganador o si hay un empate. 
+
+## La función add-piece
+
+Esta funcción sirve 
+
+
+##Función ganador
+
+Está función sirve para ver, en cada movimiento si hay un ganador o no.Para ello recibe 
 @#$#@#$#@
 default
 true
