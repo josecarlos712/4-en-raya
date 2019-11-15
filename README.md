@@ -3,6 +3,7 @@
 ## INFO
 ### - La carpeta "Otros" contiene versiones antiguas y otras pruebas que fuimos haciendo. 
 ### - El modelo en cuestión es 4-raya.nlogo y no le hemos hecho ningun cambio a la biblioteca MCTS.nls
+### - Información relacionada con el modelo en la pestaña de información dentro del .nlogo
  
 ## CHANGELOG
 
