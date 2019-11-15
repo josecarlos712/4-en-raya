@@ -1,5 +1,9 @@
-# 4-en-raya. Practica 1 de IA
-
+# Practica 1 de IA. 4 en raya
+ 
+## INFO
+### - La carpeta "Otros" contiene versiones antiguas y otras pruebas que fuimos haciendo. 
+### - El modelo en cuestión es 4-raya.nlogo y no le hemos hecho ningun cambio a la biblioteca MCTS.nls
+ 
 ## CHANGELOG
 
 - El metodo setup crea el tablero
@@ -16,6 +20,6 @@
 - Arreglado pequeño error con la comprobación del ganador anterior.
 - Rama IA de JC termnida.
 - Unificada la parte de jugador vs jugador y la de jugador vs IA.
+- Añadida información sobre el modelo en NetLogo.
 
 ## TO-DO
-- Pulir detalles de interfaz
