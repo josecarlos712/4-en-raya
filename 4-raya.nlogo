@@ -358,6 +358,8 @@ NIL
 ## ¿Qué es?
 
 Se trata de el clasico juego del 4 en raya, el cual podemos jugar tanto 2 jugadores como un jugador contra la IA(a la que se le puede ajustar la dificultad analizando más casos posibles)(Usa como variables globales "mouse-cliked?" ,"psize","estado" y "parar").
+ 
+Las reglas del juego las puede encontrar aqui -> https://brainking.com/es/GameRules?tp=13
 
 ## ¿Cómo funciona?
 El juego tiene una serie de procedimientos que podemos dividir en partes, en primer lugar
